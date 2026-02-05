@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Academic Home</title><link>https://yichun835.github.io/</link><description>Recent content on Academic Home</description><generator>Hugo -- gohugo.io</generator><language>en</language><copyright>© 2026 Yichun Lu</copyright><atom:link href="https://yichun835.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>About Me</title><link>https://yichun835.github.io/about/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://yichun835.github.io/about/</guid><description>&lt;style&gt;
+ @media (min-width: 1024px) {
+ .about-grid {
+ grid-template-columns: 1.6fr 0.4fr;
+ }
+ }
+&lt;/style&gt;
+&lt;div class="grid gap-6 lg:grid-cols-2 lg:items-center about-grid"&gt;
+ &lt;div&gt;
+ &lt;p&gt;PhD student, UGOD Thrust, HKUST (Guangzhou).&lt;/p&gt;
+ &lt;p&gt;M.S. in Computational Social Science, CUHK (Shenzhen).&lt;/p&gt;
+ &lt;/div&gt;
+ &lt;div class="relative" style="transform: translateX(calc(16rem + 50%)); overflow: visible;"&gt;
+ &lt;img src="./img/about-portrait.png" alt="Yichun Lu portrait" class="rounded-2xl shadow-2xl object-cover" style="width: 100%; max-width: 760px; max-height: 640px; transform: scale(2.2); transform-origin: center right;"&gt;
+ &lt;/div&gt;
+&lt;/div&gt;</description></item><item><title>Contact</title><link>https://yichun835.github.io/contact/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://yichun835.github.io/contact/</guid><description>&lt;ul&gt;
+&lt;li&gt;Email: &lt;a href="mailto:ylu336@connect.hkust-gz.edu.cn" &gt;ylu336@connect.hkust-gz.edu.cn&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description></item><item><title>CV</title><link>https://yichun835.github.io/cv/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://yichun835.github.io/cv/</guid><description>&lt;h2 class="relative group"&gt;Summary
+ &lt;div id="summary" class="anchor"&gt;&lt;/div&gt;
+ 
+ &lt;span
+ class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none"&gt;
+ &lt;a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#summary" aria-label="Anchor"&gt;#&lt;/a&gt;
+ &lt;/span&gt;
+ 
+&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;PhD student, UGOD Thrust, The Hong Kong University of Science and Technology (Guangzhou)&lt;/li&gt;
+&lt;li&gt;Email: &lt;a href="mailto:ylu336@connect.hkust-gz.edu.cn" &gt;ylu336@connect.hkust-gz.edu.cn&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 class="relative group"&gt;Education
+ &lt;div id="education" class="anchor"&gt;&lt;/div&gt;
+ 
+ &lt;span
+ class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none"&gt;
+ &lt;a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#education" aria-label="Anchor"&gt;#&lt;/a&gt;
+ &lt;/span&gt;
+ 
+&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Ph.D. (in progress), UGOD Thrust, The Hong Kong University of Science and Technology (Guangzhou)&lt;/li&gt;
+&lt;li&gt;M.S., Computational Social Science, The Chinese University of Hong Kong, Shenzhen&lt;/li&gt;
+&lt;/ul&gt;</description></item><item><title>Research</title><link>https://yichun835.github.io/research/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://yichun835.github.io/research/</guid><description>&lt;h2 class="relative group"&gt;Research Interests
+ &lt;div id="research-interests" class="anchor"&gt;&lt;/div&gt;
+ 
+ &lt;span
+ class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none"&gt;
+ &lt;a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#research-interests" aria-label="Anchor"&gt;#&lt;/a&gt;
+ &lt;/span&gt;
+ 
+&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Computational Social Science&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 class="relative group"&gt;Updates
+ &lt;div id="updates" class="anchor"&gt;&lt;/div&gt;
+ 
+ &lt;span
+ class="absolute top-0 w-6 transition-opacity opacity-0 -start-6 not-prose group-hover:opacity-100 select-none"&gt;
+ &lt;a class="text-primary-300 dark:text-neutral-700 !no-underline" href="#updates" aria-label="Anchor"&gt;#&lt;/a&gt;
+ &lt;/span&gt;
+ 
+&lt;/h2&gt;
+&lt;p&gt;More projects and publications will be added soon.&lt;/p&gt;</description></item></channel></rss>
