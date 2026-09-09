@@ -76,8 +76,8 @@ round spotlight; About's formal portrait, mentors and friends are unchanged.
 Run `uv run node tools/test_site_controls.mjs` for the copy/state/avatar checks.
 
 The homepage portrait has a static bronze frame, without glow or pointer movement.
-Mobile Menu keeps its staggered entrance using warm-gray day and graphite night
-layers, including the brief reveal before the main panel arrives. Keyboard focus
+Mobile Menu keeps its staggered entrance using champagne/cream day and bronze/warm-black
+night layers; these accents appear briefly before the unchanged neutral panel arrives. Keyboard focus
 remains visible. Run `uv run node tools/test_mobile_menu.mjs` for palette checks.
 Day/night switching uses a 1.6-second CSS snapshot reveal with a gradual finish;
 snapshot-relative geometry prevents cropped masks at different display scales.

@@ -1322,8 +1322,8 @@ body.yichun-subtle.yc-mobile-menu-open .yc-fluid-glass-lens {
 }
 
 body.yichun-subtle .yc-staggered-dialog {
-  --yc-menu-layer-one: #d6d7d3;
-  --yc-menu-layer-two: #e7e8e4;
+  --yc-menu-layer-one: #d8c5a4;
+  --yc-menu-layer-two: #eee4d3;
   --yc-menu-panel: #faf9f7;
   width: 100vw;
   height: 100vh;
@@ -1334,8 +1334,8 @@ body.yichun-subtle .yc-staggered-dialog {
 }
 
 html.dark body.yichun-subtle .yc-staggered-dialog {
-  --yc-menu-layer-one: #363936;
-  --yc-menu-layer-two: #252825;
+  --yc-menu-layer-one: #75634c;
+  --yc-menu-layer-two: #3b332b;
   --yc-menu-panel: #141615;
   background: rgba(0, 0, 0, 0.47) !important;
 }
