@@ -890,9 +890,9 @@ body.yc-opening-active {
   overflow: hidden;
   place-items: center;
   background:
-    radial-gradient(circle at 18% 24%, rgba(116, 203, 232, 0.2), transparent 34%),
-    radial-gradient(circle at 82% 72%, rgba(139, 129, 232, 0.16), transparent 36%),
-    #f7fbff;
+    radial-gradient(circle at 18% 24%, rgba(180, 149, 100, 0.12), transparent 34%),
+    radial-gradient(circle at 82% 72%, rgba(207, 187, 151, 0.14), transparent 36%),
+    #f8f6f0;
   cursor: pointer;
   opacity: 1;
   transition:
@@ -904,11 +904,11 @@ body.yc-opening-active {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(74, 121, 168, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(74, 121, 168, 0.045) 1px, transparent 1px);
+    linear-gradient(rgba(127, 107, 77, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(127, 107, 77, 0.045) 1px, transparent 1px);
   background-size: 42px 42px;
   content: "";
-  opacity: 0.26;
+  opacity: 0.18;
   pointer-events: none;
   mask-image: radial-gradient(circle at center, #000 8%, transparent 76%);
 }
@@ -924,13 +924,13 @@ body.yc-opening-active {
     conic-gradient(
       from 110deg at 50% 50%,
       transparent 0deg,
-      rgba(79, 188, 218, 0.15) 76deg,
+      rgba(161, 132, 88, 0.1) 76deg,
       transparent 132deg,
-      rgba(116, 105, 223, 0.13) 218deg,
+      rgba(208, 187, 151, 0.08) 218deg,
       transparent 292deg
     );
   filter: blur(58px);
-  opacity: 0.72;
+  opacity: 0.6;
   pointer-events: none;
   transform: scale(1.08);
 }
@@ -939,7 +939,7 @@ body.yc-opening-active {
   position: relative;
   z-index: 1;
   width: min(90vw, 900px);
-  color: rgba(38, 55, 82, 0.9);
+  color: #514632;
   opacity: 0;
   text-align: center;
   transform: translate3d(0, 12px, 0) scale(0.985);
@@ -985,7 +985,7 @@ body.yc-opening-active {
 
 .stroke-text__fill {
   fill: url("#yc-opening-stroke-gradient");
-  filter: url("#yc-opening-soft-glow");
+  filter: none;
   opacity: 0;
   transform: scale(0.992);
   transform-box: fill-box;
@@ -993,24 +993,24 @@ body.yc-opening-active {
 }
 
 .yc-opening-stop--one {
-  stop-color: #2f66a9;
+  stop-color: #66543a;
 }
 
 .yc-opening-stop--two {
-  stop-color: #62d6df;
+  stop-color: #947a52;
 }
 
 .yc-opening-stop--three {
-  stop-color: #817ee3;
+  stop-color: #796346;
 }
 
 .yc-opening-stop--four {
-  stop-color: #e9f8ff;
+  stop-color: #92764f;
 }
 
 .yc-opening-screen__subtitle {
   margin-top: -1.15rem;
-  color: rgba(68, 87, 118, 0.74);
+  color: #75664f;
   font-size: clamp(0.7rem, 1.25vw, 0.88rem);
   font-weight: 690;
   letter-spacing: 0.48em;
@@ -1020,7 +1020,7 @@ body.yc-opening-active {
 
 .yc-opening-screen__hint {
   margin-top: 2.5rem;
-  color: rgba(79, 96, 123, 0.5);
+  color: #62533d;
   font-size: 9px;
   font-weight: 650;
   letter-spacing: 0.28em;
@@ -1068,46 +1068,46 @@ body.yc-opening-active {
 
 html.dark .yc-opening-screen {
   background:
-    radial-gradient(circle at 17% 24%, rgba(21, 148, 213, 0.25), transparent 36%),
-    radial-gradient(circle at 84% 72%, rgba(112, 64, 229, 0.25), transparent 38%),
-    linear-gradient(145deg, #02050c, #06101e 58%, #080615);
+    radial-gradient(circle at 17% 24%, rgba(166, 128, 73, 0.14), transparent 36%),
+    radial-gradient(circle at 84% 72%, rgba(112, 85, 49, 0.1), transparent 38%),
+    linear-gradient(145deg, #080807, #11100e 58%, #0b0a08);
 }
 
 html.dark .yc-opening-screen::after {
   background-image:
-    linear-gradient(rgba(90, 194, 255, 0.085) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(130, 102, 255, 0.07) 1px, transparent 1px);
-  opacity: 0.44;
+    linear-gradient(rgba(181, 151, 103, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(181, 151, 103, 0.07) 1px, transparent 1px);
+  opacity: 0.2;
   mix-blend-mode: screen;
 }
 
 html.dark .yc-opening-screen__ambient {
-  opacity: 1;
-  filter: blur(64px) saturate(1.28);
+  opacity: 0.7;
+  filter: blur(64px);
 }
 
 html.dark .yc-opening-stop--one {
-  stop-color: #58c6ff;
+  stop-color: #b29a73;
 }
 
 html.dark .yc-opening-stop--two {
-  stop-color: #6ff4e4;
+  stop-color: #e6d8bb;
 }
 
 html.dark .yc-opening-stop--three {
-  stop-color: #a492ff;
+  stop-color: #bea681;
 }
 
 html.dark .yc-opening-stop--four {
-  stop-color: #f5fbff;
+  stop-color: #f0e6d3;
 }
 
 html.dark .yc-opening-screen__subtitle {
-  color: rgba(193, 224, 247, 0.72);
+  color: #b7a78c;
 }
 
 html.dark .yc-opening-screen__hint {
-  color: rgba(190, 214, 238, 0.44);
+  color: #c5b594;
 }
 
 @media (max-width: 639px) {
@@ -2287,6 +2287,12 @@ body.yichun-subtle .yc-photo-spotlight--hero .yc-home-avatar-crop > img {
 }
 
 .yc-pixelated-photo-layer {
+  --yc-me-surface: linear-gradient(145deg, rgba(251, 247, 238, 0.9), rgba(221, 207, 183, 0.86));
+  --yc-me-ink: #544734;
+  --yc-me-pixel: linear-gradient(145deg, rgba(115, 94, 63, 0.6), rgba(157, 135, 101, 0.62));
+  --yc-me-pixel-one: linear-gradient(145deg, rgba(154, 130, 94, 0.62), rgba(183, 163, 130, 0.66));
+  --yc-me-pixel-two: linear-gradient(145deg, rgba(188, 167, 132, 0.64), rgba(219, 200, 167, 0.7));
+  --yc-me-pixel-three: linear-gradient(145deg, rgba(223, 205, 174, 0.68), rgba(242, 230, 208, 0.74));
   position: absolute;
   z-index: 3;
   inset: 0;
@@ -2295,23 +2301,30 @@ body.yichun-subtle .yc-photo-spotlight--hero .yc-home-avatar-crop > img {
   pointer-events: none;
 }
 
+html.dark .yc-pixelated-photo-layer {
+  --yc-me-surface: linear-gradient(145deg, rgba(17, 16, 14, 0.86), rgba(48, 39, 29, 0.82));
+  --yc-me-ink: #e8dcc6;
+  --yc-me-pixel: linear-gradient(145deg, rgba(30, 26, 21, 0.74), rgba(60, 48, 32, 0.68));
+  --yc-me-pixel-one: linear-gradient(145deg, rgba(54, 44, 30, 0.7), rgba(92, 73, 45, 0.64));
+  --yc-me-pixel-two: linear-gradient(145deg, rgba(87, 69, 43, 0.64), rgba(134, 109, 73, 0.56));
+  --yc-me-pixel-three: linear-gradient(145deg, rgba(124, 101, 68, 0.58), rgba(179, 155, 115, 0.48));
+}
+
 .yc-pixelated-photo-label {
   position: absolute;
   z-index: 1;
   inset: 0;
   display: grid;
   place-items: center;
-  background:
-    radial-gradient(circle at 50% 44%, rgba(93, 157, 198, 0.16), transparent 34%),
-    linear-gradient(145deg, rgba(12, 18, 25, 0.66), rgba(13, 31, 46, 0.74));
-  color: #f6fbff;
+  background: var(--yc-me-surface);
+  color: var(--yc-me-ink);
   font-family: inherit;
   font-size: clamp(1.65rem, 3.35vw, 2.75rem);
   font-weight: 800;
   letter-spacing: -0.055em;
   line-height: 1;
   opacity: 0;
-  text-shadow: 0 0 28px rgba(144, 211, 255, 0.16);
+  text-shadow: none;
   filter: blur(5px);
   transform: translate3d(0, 7px, 0) scale(0.94);
   transition:
@@ -2340,7 +2353,7 @@ body.yichun-subtle .yc-photo-spotlight--hero .yc-home-avatar-crop > img {
   position: absolute;
   display: block;
   border-radius: 1.5px;
-  background: linear-gradient(145deg, rgba(18, 33, 47, 0.72), rgba(31, 58, 79, 0.62));
+  background: var(--yc-me-pixel);
   opacity: 0;
   transform: translate3d(var(--yc-photo-pixel-drift, 0), 12%, 0) scale(0.56);
   transform-origin: center;
@@ -2351,15 +2364,15 @@ body.yichun-subtle .yc-photo-spotlight--hero .yc-home-avatar-crop > img {
 }
 
 .yc-pixelated-photo-pixel[data-tone="1"] {
-  background: linear-gradient(145deg, rgba(22, 43, 61, 0.68), rgba(48, 80, 105, 0.58));
+  background: var(--yc-me-pixel-one);
 }
 
 .yc-pixelated-photo-pixel[data-tone="2"] {
-  background: linear-gradient(145deg, rgba(31, 62, 84, 0.64), rgba(76, 124, 157, 0.5));
+  background: var(--yc-me-pixel-two);
 }
 
 .yc-pixelated-photo-pixel[data-tone="3"] {
-  background: linear-gradient(145deg, rgba(41, 74, 99, 0.58), rgba(109, 169, 201, 0.42));
+  background: var(--yc-me-pixel-three);
 }
 
 .yc-pixelated-photo-card[data-state="active"] .yc-pixelated-photo-pixel {
@@ -3348,12 +3361,12 @@ body.yichun-subtle img[src$="/img/mentors/kelvin-yuen.jpg"] {
 
 @keyframes yc-opening-hint-pulse {
   from {
-    opacity: 0.48;
+    opacity: 0.85;
     transform: translateY(0);
   }
 
   to {
-    opacity: 0.92;
+    opacity: 1;
     transform: translateY(-2px);
   }
 }

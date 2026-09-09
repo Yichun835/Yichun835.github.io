@@ -85,6 +85,12 @@ Contact assembles its particle heading by elapsed time rather than frame count,
 and resizing preserves the completed title. Run
 `uv run node tools/test_visual_transitions.mjs` for these regression checks.
 
+Welcome and the About photo's ME/我 pixel transition use restrained bronze/champagne
+accents: warm ivory by day and warm black by night. The initial homepage cover uses
+the same palette as Welcome, without a blue flash or neon text glow. Photo zoom,
+pixel timing and click-to-enter behavior stay unchanged. Run
+`uv run node tools/test_warm_accents.mjs` for palette and first-paint checks.
+
 Same-origin page navigation uses native cross-document View Transitions when
 available: stable navigation, a continuous background crossfade and separate content
 fades. Homepage/subpage silk shares its fold geometry and a session-only phase
