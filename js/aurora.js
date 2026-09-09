@@ -10,17 +10,167 @@
   body.classList.add("yichun-subtle");
 
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  // Keep the native pointer. Cursor smoke/lens assets are no longer loaded.
   const normalizePath = (pathname) =>
     pathname.replace(/index\.html$/, "").replace(/\/$/, "") || "/";
   const currentPath = normalizePath(window.location.pathname);
-  const pixelStorageKey = "yc-pixel-page-transition";
-  const pixelCoverDuration = 460;
-  const pixelRevealDuration = 490;
-  let pixelTransitionActive = false;
+  const isHome = ["/", "/zh-cn", "/en"].includes(currentPath);
+  const isProfile = /^(?:\/(?:zh-cn|en))?\/(?:about|research|cv|contact)$/.test(currentPath);
+  // Carry a paused material phase between documents without sharing user data.
+  window.ycSilkState = {
+    read(fallback = 4) {
+      try {
+        const state = JSON.parse(window.sessionStorage.getItem("yc-silk-phase-v1"));
+        const age = Date.now() - state?.savedAt;
+        if (age >= 0 && age < 300000 && Number.isFinite(state.phase) && state.phase >= 0) return state.phase;
+      } catch { /* Storage can be disabled; the material still renders. */ }
+      return fallback;
+    },
+    save(phase) {
+      try {
+        window.sessionStorage.setItem("yc-silk-phase-v1", JSON.stringify({ phase, savedAt: Date.now() }));
+      } catch { /* No persistence is required for navigation. */ }
+    },
+  };
+  const wordmark = document.querySelector(".main-menu > a");
+  if (wordmark) {
+    const chinese = document.documentElement.lang.toLowerCase().startsWith("zh");
+    wordmark.textContent = chinese ? "陆倚淳" : "Yichun Lu";
+    wordmark.classList.add("yc-wordmark");
+    wordmark.setAttribute("aria-label", chinese ? "陆倚淳 · 主页" : "Yichun Lu · Home");
+  }
+  if (isHome) body.classList.add("yc-home-page");
+  if (isProfile) {
+    body.classList.add("yc-profile-page", `yc-${currentPath.split("/").pop()}-page`);
+    const raysScript = document.createElement("script");
+    raysScript.src = "/js/profile-rays.js?v=continuity-3";
+    raysScript.async = true;
+    document.head.append(raysScript);
+    // Both locales use the same share destination, but different accessible labels.
+    document.querySelector('#main-content a[href*="linkedin.com/shareArticle"], #main-content a[href*="linkedin.com/sharing/share-offsite"]')
+      ?.closest("section")?.classList.add("yc-template-share");
+    for (const toc of document.querySelectorAll("#main-content .toc")) {
+      toc.parentElement.classList.add("yc-template-toc");
+    }
 
-  body.dataset.pageTransition = "pixel-swap";
+    if (body.classList.contains("yc-cv-page")) {
+      const content = document.querySelector(".article-content");
+      content?.querySelectorAll(":scope > h2").forEach((heading, index) => {
+        const list = heading.nextElementSibling;
+        if (list?.tagName !== "UL") return;
+        const row = document.createElement("section");
+        row.className = "yc-cv-section";
+        if (index === 1) row.classList.add("yc-cv-education");
+        heading.id ||= `yc-cv-heading-${index}`;
+        row.setAttribute("aria-labelledby", heading.id);
+        heading.before(row);
+        row.append(heading, list);
+      });
+    }
+  }
+  body.children[1]?.classList.contains("min-h-[148px]") &&
+    body.children[1].classList.add("yc-header-space");
+
+  if (isHome) {
+    // Prepare the night material when appearance is opened, before taking snapshots.
+    let requestedSilk = false;
+    const loadNightMaterial = (prepare = false) => {
+      if (requestedSilk || (!prepare && !document.documentElement.classList.contains("dark"))) return;
+      requestedSilk = true;
+      const script = document.createElement("script");
+      script.src = "/js/home-silk.js?v=continuity-3";
+      script.async = true;
+      document.head.append(script);
+    };
+    new MutationObserver(() => loadNightMaterial()).observe(document.documentElement, {
+      attributes: true, attributeFilter: ["class"],
+    });
+    window.addEventListener("yc:appearance-open", () => loadNightMaterial(true));
+    loadNightMaterial();
+  }
+
+  // Reuse the theme's original handler so preference saving and icons stay in sync.
+  let themeTransition = null;
+  let forwardingThemeClick = false;
+  document.addEventListener("click", (event) => {
+    const button = event.target instanceof Element
+      ? event.target.closest("#appearance-switcher, #appearance-switcher-mobile")
+      : null;
+    if (!button || forwardingThemeClick || !document.startViewTransition || reducedMotion.matches) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    if (themeTransition) return;
+
+    const trigger = button.closest(".yc-appearance-control")?.querySelector(".yc-appearance-toggle") || button;
+    const bounds = trigger.getBoundingClientRect();
+    const x = bounds.left + bounds.width / 2;
+    const y = bounds.top + bounds.height / 2;
+    const viewportWidth = document.documentElement.clientWidth || innerWidth;
+    const viewportHeight = innerHeight;
+    const radius = Math.hypot(Math.max(x, viewportWidth - x), Math.max(y, viewportHeight - y));
+    // Percentages use the snapshot's own coordinate space, including HiDPI/zoom.
+    // A circle's percentage radius is relative to the normalized diagonal.
+    const normalizedDiagonal = Math.hypot(viewportWidth, viewportHeight) / Math.SQRT2;
+    const applyTheme = () => {
+      forwardingThemeClick = true;
+      try { button.click(); } finally { forwardingThemeClick = false; }
+    };
+    // Close the popover before the old snapshot, so it cannot linger mid-transition.
+    window.dispatchEvent(new Event("yc:before-theme-change"));
+    const root = document.documentElement;
+    root.style.setProperty("--yc-theme-x", `${x / viewportWidth * 100}%`);
+    root.style.setProperty("--yc-theme-y", `${y / viewportHeight * 100}%`);
+    root.style.setProperty("--yc-theme-radius", `${radius / normalizedDiagonal * 100 + 0.5}%`);
+    const releaseTheme = () => {
+      root.classList.remove("yc-theme-transitioning");
+      for (const key of ["x", "y", "radius"]) root.style.removeProperty(`--yc-theme-${key}`);
+      themeTransition = null;
+    };
+    document.documentElement.classList.add("yc-theme-transitioning");
+    try {
+      themeTransition = document.startViewTransition(applyTheme);
+    } catch {
+      releaseTheme();
+      applyTheme();
+      return;
+    }
+    // CSS owns the snapshot animation from its first frame, including the slow finish.
+    // Avoid late WAAPI pseudo-element attachment, which can fall back to a sudden reveal.
+    themeTransition.ready.catch(() => { /* The original theme handler still applies. */ });
+    themeTransition.finished.catch(() => {}).finally(releaseTheme);
+  }, { capture: true });
+  const pixelStorageKey = "yc-pixel-page-transition";
+  const pixelCoverDuration = 300;
+  const pixelRevealDuration = 360;
+  let pixelTransitionActive = false;
+  const nativePageTransitions = "onpagereveal" in window && "onpageswap" in window;
+
+  body.dataset.pageTransition = nativePageTransitions ? "native" : "pixel-swap";
   body.dataset.pixelState = "idle";
   body.dataset.arrival = "direct";
+
+  // Cross-document snapshots keep the old page visible while the new one loads.
+  // No artificial cover delay, no SPA DOM replacement, and browser history stays native.
+  if (nativePageTransitions) {
+    window.addEventListener("pageswap", (event) => {
+      if (!event.viewTransition) return;
+      event.viewTransition.ready.catch(() => {}); // Resizing/navigation may legitimately skip a snapshot.
+      if (reducedMotion.matches) { event.viewTransition.skipTransition(); return; }
+      body.dataset.pixelState = "cover";
+    });
+    window.addEventListener("pagereveal", (event) => {
+      if (!event.viewTransition) return;
+      event.viewTransition.ready.catch(() => {});
+      body.dataset.arrival = "internal";
+      body.dataset.pixelState = "reveal";
+      if (reducedMotion.matches || body.classList.contains("yc-opening-active")) {
+        event.viewTransition.skipTransition();
+      }
+      event.viewTransition.finished.catch(() => {}).finally(() => {
+        body.dataset.pixelState = "idle";
+      });
+    });
+  }
 
   const pixelNoise = (seed) => {
     const value = Math.sin(seed * 127.1 + 311.7) * 43758.5453;
@@ -125,7 +275,8 @@
         pending.path === currentPath &&
         pending.search === window.location.search &&
         Date.now() - pending.started < 6000 &&
-        !reducedMotion.matches
+        !reducedMotion.matches &&
+        !nativePageTransitions
       ) {
         body.dataset.arrival = "internal";
         pixelTransitionActive = true;
@@ -353,8 +504,20 @@
   }
 
   for (const button of document.querySelectorAll("#switch-layout-button")) {
+    // Tailwind's important utility layer otherwise overrides the theme-aware label.
+    button.classList.remove("!text-neutral", "hover:!bg-primary-500", "dark:hover:!bg-primary-700");
     button.classList.add("yc-layout-switch");
+    const callout = button.parentElement?.parentElement;
+    if (callout?.querySelector("#layout")) {
+      callout.classList.add("yc-layout-controls");
+      callout.parentElement?.classList.add("yc-home-intro");
+    }
   }
+
+  const siteControls = document.createElement("script");
+  siteControls.src = "/js/site-controls.js?v=1";
+  siteControls.async = true;
+  document.head.append(siteControls);
 
   document
     .querySelector('a[href*="kelvincyyuen.com"]')
@@ -363,18 +526,15 @@
 
   if (currentPath === "/" || currentPath === "/zh-cn" || currentPath === "/en") {
     const chinese = document.documentElement.lang.toLowerCase().startsWith("zh");
+    const heroArtwork = document.querySelector('#hero img[src$="/img/background.svg"]');
+    if (heroArtwork) {
+      heroArtwork.parentElement.classList.add("yc-home-hero-backdrop");
+      heroArtwork.parentElement.parentElement.classList.add("yc-home-hero-card");
+    }
     const contactLabel = chinese ? "Contact" : "Contact me";
     const contactEmail =
       document.querySelector('#main-content a[href^="mailto:"]')?.getAttribute("href") ||
       "mailto:ylu336@connect.hkust-gz.edu.cn";
-
-    if (!document.querySelector('script[data-yc-opening-stroke="true"]')) {
-      const openingScript = document.createElement("script");
-      openingScript.src = "/js/opening-stroke.js?v=welcome-click-v3";
-      openingScript.async = true;
-      openingScript.dataset.ycOpeningStroke = "true";
-      document.head.append(openingScript);
-    }
 
     const addPhotoSpotlight = (avatar, variant) => {
       if (avatar.parentElement?.classList.contains("yc-photo-spotlight")) {
@@ -382,14 +542,20 @@
       }
 
       const spotlight = document.createElement("span");
+      const isHero = variant === "hero";
+      const idleIntensity = isHero ? "0" : "0.38";
       spotlight.className = `yc-photo-spotlight yc-photo-spotlight--${variant}`;
+      spotlight.dataset.active = "false";
       spotlight.style.setProperty("--yc-photo-x", "34%");
       spotlight.style.setProperty("--yc-photo-y", "24%");
-      spotlight.style.setProperty("--yc-photo-intensity", variant === "social" ? "0.38" : "0.26");
+      spotlight.style.setProperty("--yc-photo-intensity", idleIntensity);
       spotlight.style.setProperty("--yc-magnet-x", "0px");
       spotlight.style.setProperty("--yc-magnet-y", "0px");
       avatar.before(spotlight);
       spotlight.append(avatar);
+
+      // The owner's portrait uses a static, material frame; no pointer animation.
+      if (isHero) return;
 
       if (variant === "social") {
         const starField = document.createElement("span");
@@ -419,7 +585,7 @@
         spotlight.append(starField);
       }
 
-      spotlight.addEventListener("pointermove", (event) => {
+      const moveSpotlight = (event) => {
         const bounds = spotlight.getBoundingClientRect();
         const x = ((event.clientX - bounds.left) / bounds.width) * 100;
         const y = ((event.clientY - bounds.top) / bounds.height) * 100;
@@ -429,13 +595,15 @@
         spotlight.style.setProperty("--yc-magnet-x", `${((x - 50) * 0.075).toFixed(2)}px`);
         spotlight.style.setProperty("--yc-magnet-y", `${((y - 50) * 0.075).toFixed(2)}px`);
         spotlight.dataset.active = "true";
-      });
-      spotlight.addEventListener("pointerleave", () => {
-        spotlight.style.setProperty("--yc-photo-intensity", variant === "social" ? "0.38" : "0.26");
+      };
+      const resetSpotlight = () => {
+        spotlight.style.setProperty("--yc-photo-intensity", idleIntensity);
         spotlight.style.setProperty("--yc-magnet-x", "0px");
         spotlight.style.setProperty("--yc-magnet-y", "0px");
         spotlight.dataset.active = "false";
-      });
+      };
+      spotlight.addEventListener("pointermove", moveSpotlight);
+      spotlight.addEventListener("pointerleave", resetSpotlight);
     };
 
     for (const layoutId of ["background", "hero", "profile", "page", "card"]) {
@@ -477,7 +645,18 @@
     for (const avatar of document.querySelectorAll(
       "#main-content img.h-36.w-36.rounded-full[alt]",
     )) {
+      avatar.parentElement.classList.add("yc-home-profile");
+      const affiliation = avatar.parentElement.querySelector(":scope > h2");
+      if (affiliation?.textContent.trim() === "USTGZ") {
+        affiliation.textContent = chinese ? "博士生 · 香港科技大学（广州）" : "PhD Student · HKUST (Guangzhou)";
+      }
       addPhotoSpotlight(avatar, "hero");
+      if (avatar.getAttribute("src")?.includes("yichun-home-portrait.jpg")) {
+        const crop = document.createElement("span");
+        crop.className = "yc-home-avatar-crop";
+        avatar.before(crop);
+        crop.append(avatar);
+      }
     }
 
     for (const avatar of document.querySelectorAll(".friends-section img.rounded-full")) {
@@ -499,6 +678,12 @@
         section.dataset.spotlight = "idle";
       });
     }
+
+    // Loads after this synchronous setup has created the profile and audio controls.
+    const polish = document.createElement("script");
+    polish.src = "/js/home-polish.js?v=quiet-1";
+    polish.async = true;
+    document.head.append(polish);
   }
 
   if (currentPath === "/about" || currentPath === "/zh-cn/about") {
@@ -692,16 +877,10 @@
     }
   }
 
-  if (currentPath === "/research" || currentPath === "/zh-cn/research") {
-    body.classList.add("yc-research-page");
-
-    if (!document.querySelector('script[data-yc-research-ferrofluid="true"]')) {
-      const ferrofluidScript = document.createElement("script");
-      ferrofluidScript.src = "/js/research-ferrofluid.js";
-      ferrofluidScript.async = true;
-      ferrofluidScript.dataset.ycResearchFerrofluid = "true";
-      document.head.append(ferrofluidScript);
-    }
+  if (body.classList.contains("yc-research-page")) {
+    // Keep the original headings, interests, text and deep links intact.
+    // Shared silk backdrop; the interests remain a non-interactive peer list.
+    document.querySelector(".article-content")?.classList.add("yc-research-editorial");
   }
 
   if (/\/(?:zh-cn\/)?contact$/.test(currentPath)) {
@@ -715,7 +894,7 @@
       const stage = document.createElement("div");
       stage.className = "yc-particle-text particle-text";
       stage.dataset.state = "assembling";
-      stage.dataset.palette = "ice-blue,soft-violet";
+      stage.dataset.palette = "neutral-ink,white";
 
       const canvas = document.createElement("canvas");
       canvas.className = "yc-particle-text__canvas particle-text__canvas";
@@ -745,17 +924,29 @@
         let height = 0;
         let frame = 0;
         let lastDraw = 0;
+        let lastParticleTime = 0;
         let assembledAt = performance.now();
         let visible = true;
+        let suspended = false;
+        const assemblyDuration = 900;
+        const assemblyEase = (progress) => 1 - (1 - Math.max(0, Math.min(1, progress))) ** 3;
+        const particleDamping = (ease, milliseconds) => 1 - (1 - ease) ** (milliseconds / (1000 / 60));
+        const canRunParticles = () => visible && !suspended && !document.hidden && !reducedMotion.matches
+          && !document.documentElement.classList.contains("yc-theme-transitioning");
 
         const drawParticleText = (time = performance.now()) => {
           context.clearRect(0, 0, width, height);
+          const delta = lastParticleTime ? Math.min(50, Math.max(0, time - lastParticleTime)) : 1000 / 60;
+          lastParticleTime = time;
 
           const dark = document.documentElement.classList.contains("dark");
           const palette = dark
-            ? ["146,203,255", "181,196,255", "211,178,250"]
-            : ["70,115,186", "93,132,195", "131,104,189"];
-          const settled = reducedMotion.matches || time - assembledAt > 1280;
+            ? ["228,228,226", "245,245,243", "201,203,202"]
+            : ["55,61,65", "79,85,88", "103,108,110"];
+          const progress = reducedMotion.matches ? 1 : Math.max(0, Math.min(1, (time - assembledAt) / assemblyDuration));
+          const assembly = assemblyEase(progress);
+          const settled = progress >= 1;
+          const finishingAssembly = settled && stage.dataset.state === "assembling";
 
           if (stage.dataset.state !== (settled ? "interactive" : "assembling")) {
             stage.dataset.state = settled ? "interactive" : "assembling";
@@ -780,16 +971,21 @@
               }
             }
 
-            if (reducedMotion.matches) {
+            if (reducedMotion.matches || finishingAssembly) {
               point.x = targetX;
               point.y = targetY;
+            } else if (!settled) {
+              // A bounded, time-based formation avoids the old frame-rate-dependent long tail.
+              point.x = point.startX + (targetX - point.startX) * assembly;
+              point.y = point.startY + (targetY - point.startY) * assembly;
             } else {
-              point.x += (targetX - point.x) * point.ease;
-              point.y += (targetY - point.y) * point.ease;
+              const damping = particleDamping(point.ease, delta);
+              point.x += (targetX - point.x) * damping;
+              point.y += (targetY - point.y) * damping;
             }
 
             context.fillStyle = `rgb(${palette[point.tone]})`;
-            context.globalAlpha = Math.min(1, point.opacity + wave * 0.08);
+            context.globalAlpha = Math.min(1, point.opacity + wave * 0.08) * Math.min(1, progress * 3.5);
             context.beginPath();
             context.arc(point.x, point.y, point.radius, 0, Math.PI * 2);
             context.fill();
@@ -799,13 +995,14 @@
         };
 
         const renderParticleText = (time) => {
-          if (!visible || document.hidden || reducedMotion.matches) {
+          if (!canRunParticles()) {
             frame = 0;
-            drawParticleText(time);
+            lastParticleTime = 0;
             return;
           }
 
-          if (time - lastDraw >= 30) {
+          const interval = time - assembledAt < assemblyDuration || pointer.active ? 1000 / 60 : 1000 / 30;
+          if (time - lastDraw >= interval - 0.5) {
             lastDraw = time;
             drawParticleText(time);
           }
@@ -814,14 +1011,15 @@
         };
 
         const refreshParticleText = () => {
-          if ((!visible || document.hidden || reducedMotion.matches) && frame) {
+          if (!canRunParticles()) {
             window.cancelAnimationFrame(frame);
             frame = 0;
+            lastParticleTime = 0;
           }
 
-          if (reducedMotion.matches) {
-            drawParticleText();
-          } else if (visible && !document.hidden && !frame) {
+          // Paint the new palette before the theme snapshot even when animation is paused.
+          if (visible && !suspended && !document.hidden) drawParticleText();
+          if (canRunParticles() && !frame) {
             frame = window.requestAnimationFrame(renderParticleText);
           }
         };
@@ -839,6 +1037,7 @@
             return;
           }
 
+          const reflow = points.length > 0;
           width = nextWidth;
           height = nextHeight;
           const ratio = Math.min(window.devicePixelRatio || 1, 1.45);
@@ -877,12 +1076,15 @@
           const stride = Math.max(1, Math.ceil(sampled.length / 1250));
           points = sampled.filter((_, index) => index % stride === 0).map((point, index) => {
             const random = pixelNoise(index + 67);
+            const startX = point.x + (pixelNoise(index + 13) - 0.5) * 72;
+            const startY = point.y + (pixelNoise(index + 29) - 0.5) * 44;
 
             return {
               homeX: point.x,
               homeY: point.y,
-              x: width * pixelNoise(index + 13),
-              y: height * pixelNoise(index + 29),
+              startX, startY,
+              x: reflow ? point.x : startX,
+              y: reflow ? point.y : startY,
               radius: 0.78 + pixelNoise(index + 41) * 0.62,
               opacity: 0.65 + random * 0.34,
               phase: random * Math.PI * 2,
@@ -892,8 +1094,9 @@
           });
 
           stage.dataset.points = String(points.length);
-          assembledAt = performance.now();
-          drawParticleText(assembledAt);
+          // A resize should reflow the completed heading, not replay its entrance.
+          assembledAt = performance.now() - (reflow ? assemblyDuration : 0);
+          lastParticleTime = 0;
           refreshParticleText();
         };
 
@@ -925,6 +1128,11 @@
 
         document.addEventListener("visibilitychange", refreshParticleText);
         reducedMotion.addEventListener("change", refreshParticleText);
+        new MutationObserver(refreshParticleText).observe(document.documentElement, {
+          attributes: true, attributeFilter: ["class"],
+        });
+        window.addEventListener("pagehide", () => { suspended = true; refreshParticleText(); });
+        window.addEventListener("pageshow", () => { suspended = false; refreshParticleText(); });
         resizeParticleText();
       }
     }
@@ -1005,7 +1213,20 @@
             link.tabIndex = -1;
           }
 
-          item.append(link);
+          if (contact.href.startsWith("mailto:")) {
+            const pill = document.createElement("span");
+            pill.className = "yc-contact-email-pill";
+            const copy = document.createElement("button");
+            copy.type = "button";
+            copy.className = "yc-email-copy";
+            copy.dataset.copyEmail = contact.detail;
+            copy.setAttribute("aria-label", chinese ? "复制邮箱地址" : "Copy email address");
+            copy.title = chinese ? "复制邮箱地址" : "Copy email address";
+            copy.innerHTML = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="8" y="8" width="11" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M15 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h3" stroke="currentColor" stroke-width="1.5"/></svg>';
+            if (duplicate) copy.tabIndex = -1;
+            pill.append(link, copy);
+            item.append(pill);
+          } else item.append(link);
           list.append(item);
         }
 
@@ -1021,7 +1242,12 @@
       );
       track.className = "logoloop__track yc-contact-logoloop-track";
       track.append(createContactList(), createContactList(true));
-      loop.append(track);
+      const status = document.createElement("span");
+      status.className = "yc-sr-only";
+      status.id = "yc-copy-status";
+      status.setAttribute("role", "status");
+      status.setAttribute("aria-live", "polite");
+      loop.append(track, status);
       contactList.replaceWith(loop);
 
       const shareRow = loop.closest(".article-content")?.nextElementSibling;
@@ -1083,6 +1309,8 @@
       return;
     }
 
+    if (nativePageTransitions) return;
+
     event.preventDefault();
 
     beginPixelCover(() => {
@@ -1107,6 +1335,7 @@
 
   window.addEventListener("pageshow", (event) => {
     body.classList.remove("yc-page-leaving");
+    if (nativePageTransitions && event.persisted) body.dataset.pixelState = "idle";
 
     if (event.persisted) {
       document.querySelectorAll(".yc-pixel-transition").forEach(finishPixelTransition);
@@ -1118,6 +1347,10 @@
   if (!layer) {
     return;
   }
+
+  // Decoration lives outside the page/layout containers, so scrolling and layout
+  // transitions cannot move, blur or resize the star field.
+  layer.classList.add("yc-legacy-backdrop");
 
   const showcase = currentPath === "/" || currentPath === "/zh-cn" || currentPath === "/en";
 
@@ -1273,6 +1506,8 @@
 
             let active = false;
             let auroraFrame = 0;
+            const canAnimateLower = () => active && !document.hidden && !reducedMotion.matches
+              && !document.documentElement.classList.contains("dark");
 
             const render = (time = performance.now()) => {
               gl.viewport(0, 0, surface.width, surface.height);
@@ -1281,7 +1516,7 @@
               gl.uniform2f(resolutionUniform, surface.width, surface.height);
               gl.drawArrays(gl.TRIANGLES, 0, 3);
 
-              if (active && !document.hidden && !reducedMotion.matches) {
+              if (canAnimateLower()) {
                 auroraFrame = window.requestAnimationFrame(render);
               } else {
                 auroraFrame = 0;
@@ -1304,9 +1539,9 @@
             };
 
             const refresh = () => {
-              if (active && !document.hidden && !reducedMotion.matches && !auroraFrame) {
+              if (canAnimateLower() && !auroraFrame) {
                 auroraFrame = window.requestAnimationFrame(render);
-              } else if ((!active || document.hidden || reducedMotion.matches) && auroraFrame) {
+              } else if (!canAnimateLower() && auroraFrame) {
                 window.cancelAnimationFrame(auroraFrame);
                 auroraFrame = 0;
                 render();
@@ -1334,6 +1569,9 @@
             window.addEventListener("resize", resizeLowerAurora, { passive: true });
             document.addEventListener("visibilitychange", refresh);
             reducedMotion.addEventListener("change", refresh);
+            new MutationObserver(refresh).observe(document.documentElement, {
+              attributes: true, attributeFilter: ["class"],
+            });
             resizeLowerAurora();
             refresh();
           }
@@ -1345,34 +1583,11 @@
     }
   }
 
-  const aurora = document.createElement("div");
-  aurora.className = "yc-aurora-overlay";
-  aurora.setAttribute("aria-hidden", "true");
-
-  const meteorLayer = document.createElement("div");
-  meteorLayer.className = "yc-meteors";
-  meteorLayer.setAttribute("aria-hidden", "true");
-
-  for (const [left, top, delay, duration] of [
-    [81, 17, 2.4, 11.2],
-    [96, 39, 7.3, 14.6],
-  ]) {
-    const meteor = document.createElement("span");
-    meteor.className = "yc-meteor";
-    meteor.style.left = `${left}%`;
-    meteor.style.top = `${top}%`;
-    meteor.style.animationDelay = `${delay}s`;
-    meteor.style.animationDuration = `${duration}s`;
-    meteorLayer.append(meteor);
-  }
-
-  layer.append(aurora, meteorLayer);
-
   const canvas = document.createElement("canvas");
   canvas.id = "yc-particle-field";
   canvas.setAttribute("aria-hidden", "true");
-  canvas.dataset.visual = showcase ? "line-puppy-particles" : "depth-particles";
-  layer.append(canvas);
+  canvas.dataset.visual = "fixed-twinkling-stars";
+  body.prepend(canvas);
 
   const context = canvas.getContext("2d", { alpha: true });
 
@@ -1392,80 +1607,11 @@
     body.append(emblemCanvas);
   }
 
-  const createFluidGlassLens = () => {
-    const map = document.createElement("canvas");
-    map.width = 96;
-    map.height = 96;
-
-    const mapContext = map.getContext("2d");
-
-    if (!mapContext) {
-      return null;
-    }
-
-    const image = mapContext.createImageData(map.width, map.height);
-
-    for (let y = 0; y < map.height; y += 1) {
-      for (let x = 0; x < map.width; x += 1) {
-        const offsetX = (x + 0.5 - map.width / 2) / (map.width / 2);
-        const offsetY = (y + 0.5 - map.height / 2) / (map.height / 2);
-        const radius = Math.hypot(offsetX, offsetY);
-        const index = (y * map.width + x) * 4;
-        const rim = Math.max(0, 1 - Math.abs(radius - 0.81) / 0.22);
-        const strength = radius < 1 ? radius * 0.12 + rim * rim * 0.69 : 0;
-        const directionX = radius ? offsetX / radius : 0;
-        const directionY = radius ? offsetY / radius : 0;
-
-        image.data[index] = Math.round(128 + directionX * strength * 118);
-        image.data[index + 1] = Math.round(128 + directionY * strength * 118);
-        image.data[index + 2] = 128;
-        image.data[index + 3] = 255;
-      }
-    }
-
-    mapContext.putImageData(image, 0, 0);
-
-    const filters = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    filters.setAttribute("aria-hidden", "true");
-    filters.setAttribute("focusable", "false");
-    filters.classList.add("yc-fluid-glass-filters");
-    filters.innerHTML = `
-      <defs>
-        <filter id="yc-fluid-glass-refraction" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
-          <feImage href="${map.toDataURL()}" x="0" y="0" width="100%" height="100%" preserveAspectRatio="none" result="displacement" />
-          <feDisplacementMap in="SourceGraphic" in2="displacement" scale="-8" xChannelSelector="R" yChannelSelector="G" result="red-shift" />
-          <feDisplacementMap in="SourceGraphic" in2="displacement" scale="-10" xChannelSelector="R" yChannelSelector="G" result="green-shift" />
-          <feDisplacementMap in="SourceGraphic" in2="displacement" scale="-12" xChannelSelector="R" yChannelSelector="G" result="blue-shift" />
-          <feColorMatrix in="red-shift" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="red" />
-          <feColorMatrix in="green-shift" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="green" />
-          <feColorMatrix in="blue-shift" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="blue" />
-          <feBlend in="red" in2="green" mode="screen" result="red-green" />
-          <feBlend in="red-green" in2="blue" mode="screen" />
-        </filter>
-      </defs>`;
-
-    const lens = document.createElement("div");
-    lens.className = "yc-fluid-glass-lens";
-    lens.setAttribute("aria-hidden", "true");
-    lens.dataset.visible = "false";
-    lens.dataset.refraction = window.CSS?.supports("backdrop-filter", "url(#yc-fluid-glass-refraction)")
-      ? "svg"
-      : "fallback";
-    body.append(filters, lens);
-
-    return lens;
-  };
-
-  const fluidGlass = createFluidGlassLens();
   const particles = [];
   const emblemPoints = [];
   const pointer = {
     x: -1000,
     y: -1000,
-    targetX: -1000,
-    targetY: -1000,
-    angle: 0,
-    stretch: 0,
     active: false,
   };
   const particlePalette = ["160, 220, 246", "182, 201, 255", "225, 188, 250"];
@@ -1494,6 +1640,7 @@
   let width = 0;
   let height = 0;
   let frame = 0;
+  let lastStarFrame = 0;
   let assemblyStarted = 0;
   let audioLevel = 0;
   const emblemLayout = { width: 0, centerX: 0, centerY: 0, mode: "compact-corner" };
@@ -1528,7 +1675,7 @@
 
   const resize = () => {
     width = window.innerWidth;
-    height = Math.min(window.innerHeight, 1000);
+    height = window.innerHeight;
 
     const ratio = Math.min(window.devicePixelRatio || 1, 1.35);
     canvas.width = Math.round(width * ratio);
@@ -1542,21 +1689,22 @@
       emblemContext.setTransform(ratio, 0, 0, ratio, 0, 0);
     }
 
-    const count = Math.min(68, Math.max(30, Math.round((width * height) / 16500)));
+    const count = Math.min(92, Math.max(38, Math.round((width * height) / 12500)));
 
     while (particles.length < count) {
       const depth = Math.random() * 0.78 + 0.22;
 
       particles.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: (Math.random() - 0.5) * depth * 0.18,
-        vy: (Math.random() - 0.5) * depth * 0.13,
-        radius: 0.48 + depth * 1.32,
+        u: Math.random(),
+        v: Math.random(),
+        radius: 0.42 + depth * 0.77,
         phase: Math.random() * Math.PI * 2,
+        period: 3.8 + Math.random() * 7.2,
+        duration: 0.75 + Math.random() * 1.1,
+        seed: Math.random() * 1000,
         depth,
         tone: Math.floor(Math.random() * particlePalette.length),
-        glow: Math.random() > 0.78,
+        glow: Math.random() > 0.87,
       });
     }
 
@@ -1699,45 +1847,34 @@
 
     const dark = document.documentElement.classList.contains("dark");
 
-    if (pointer.active) {
-      pointer.x += (pointer.targetX - pointer.x) * 0.27;
-      pointer.y += (pointer.targetY - pointer.y) * 0.27;
-
-      if (fluidGlass) {
-        const velocityX = pointer.targetX - pointer.x;
-        const velocityY = pointer.targetY - pointer.y;
-        const velocity = Math.hypot(velocityX, velocityY);
-
-        if (velocity > 0.8) {
-          pointer.angle = Math.atan2(velocityY, velocityX);
-        }
-
-        pointer.stretch += (Math.min(velocity / 440, 0.15) - pointer.stretch) * 0.13;
-        fluidGlass.style.transform =
-          `translate3d(${pointer.x}px, ${pointer.y}px, 0) translate(-50%, -50%) ` +
-          `rotate(${pointer.angle}rad) scale(${1 + pointer.stretch}, ${1 - pointer.stretch * 0.48}) ` +
-          `rotate(${-pointer.angle}rad)`;
-      }
-    }
-
     drawEmblem(time, dark);
 
     for (const current of particles) {
-      current.x = (current.x + current.vx + width) % width;
-      current.y = (current.y + current.vy + height) % height;
+      const x = current.u * width;
+      const y = current.v * height;
+      const seconds = (reducedMotion.matches ? 0 : time * 0.001) + current.phase;
+      const cycle = Math.floor(seconds / current.period);
+      const localTime = seconds % current.period;
+      const onset = pixelNoise(current.seed + cycle * 17) * (current.period - current.duration);
+      const progress = (localTime - onset) / current.duration;
+      const sparkle = progress > 0 && progress < 1 ? Math.sin(progress * Math.PI) ** 3 : 0;
+      const base = 0.12 + current.depth * 0.18;
+      const opacity = Math.min(1, base + sparkle * (current.glow ? 0.8 : 0.48));
 
-      const shiftX = pointer.active ? ((pointer.x - width / 2) / width) * current.depth * 13 : 0;
-      const shiftY = pointer.active ? ((pointer.y - height / 2) / height) * current.depth * 9 : 0;
-      const x = current.x + shiftX;
-      const y = current.y + shiftY;
-      const twinkle = 0.55 + Math.sin(time * 0.001 + current.phase) * 0.27;
-      const opacity = twinkle * (0.2 + current.depth * 0.52) * (dark ? 1 : 0.66);
-
-      if (current.glow) {
-        drawGlow(x, y, current.radius * 1.7, current.tone, opacity);
+      if (dark && current.glow && sparkle > 0.12) {
+        drawGlow(x, y, current.radius * 0.9, current.tone, sparkle * 0.35);
+        const ray = current.radius * (1.8 + sparkle * 2.7);
+        context.strokeStyle = `rgba(199, 224, 250, ${sparkle * 0.42})`;
+        context.lineWidth = 0.55;
+        context.beginPath();
+        context.moveTo(x - ray, y);
+        context.lineTo(x + ray, y);
+        context.moveTo(x, y - ray);
+        context.lineTo(x, y + ray);
+        context.stroke();
       }
 
-      context.fillStyle = `rgba(${particlePalette[current.tone]}, ${opacity})`;
+      context.fillStyle = `rgba(${dark ? particlePalette[current.tone] : "56, 103, 146"}, ${opacity * (dark ? 1 : 0.58)})`;
       context.beginPath();
       context.arc(x, y, current.radius, 0, Math.PI * 2);
       context.fill();
@@ -1751,11 +1888,20 @@
       return;
     }
 
-    draw(time);
+    if (time - lastStarFrame >= 1000 / 30) {
+      draw(time);
+      lastStarFrame = time;
+    }
     frame = window.requestAnimationFrame(animate);
   };
 
   const resume = () => {
+    if (document.hidden || reducedMotion.matches) {
+      window.cancelAnimationFrame(frame);
+      frame = 0;
+      if (!document.hidden) draw();
+      return;
+    }
     if (!frame && !document.hidden && !reducedMotion.matches) {
       frame = window.requestAnimationFrame(animate);
     }
@@ -1947,31 +2093,20 @@
         return;
       }
 
-      if (!pointer.active) {
-        pointer.x = event.clientX;
-        pointer.y = event.clientY;
-        pointer.active = true;
-
-        if (fluidGlass && !reducedMotion.matches) {
-          fluidGlass.dataset.visible = "true";
-        }
-      }
-
-      pointer.targetX = event.clientX;
-      pointer.targetY = event.clientY;
+      pointer.x = event.clientX;
+      pointer.y = event.clientY;
+      pointer.active = true;
     },
     { passive: true },
   );
   document.addEventListener("pointerleave", () => {
     pointer.active = false;
-    pointer.stretch = 0;
-
-    if (fluidGlass) {
-      fluidGlass.dataset.visible = "false";
-    }
   });
   document.addEventListener("visibilitychange", resume);
   reducedMotion.addEventListener("change", resume);
+  new MutationObserver(() => { if (reducedMotion.matches) draw(); }).observe(
+    document.documentElement, { attributes: true, attributeFilter: ["class"] },
+  );
 
   if (showcase) {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;

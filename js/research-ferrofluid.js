@@ -56,9 +56,9 @@
     #define PI 3.14159265
 
     vec3 palette(float h) {
-      if (h < 0.34) return uColor0;
-      if (h < 0.67) return uColor1;
-      return uColor2;
+      return h < 0.5
+        ? mix(uColor0, uColor1, smoothstep(0.0, 0.5, h))
+        : mix(uColor1, uColor2, smoothstep(0.5, 1.0, h));
     }
 
     float hash(vec3 p3) {
@@ -95,7 +95,7 @@
     void main() {
       float ref = 452.0;
       vec2 p = vUv * iResolution / iResolution.y * ref;
-      float t = iTime * 27.0;
+      float t = iTime * 8.0;
       vec2 dir = vec2(0.0, -1.0);
       vec2 perp = vec2(1.0, 0.0);
 
@@ -112,9 +112,9 @@
       float shimmer = vn(p + dir * t * 0.45, 62.0, 12.0) * 1.12;
       float light = pow(clamp(rim - shimmer, 0.0, 1.0), 2.5) * 1.9;
       float hue = clamp(0.5 + (peaks - peaks2) * 0.86, 0.0, 1.0);
-      vec3 color = palette(hue) * light;
       float alpha = clamp(light * 0.74, 0.0, 1.0) * uOpacity;
-      gl_FragColor = vec4(color, alpha);
+      // The canvas is premultiplied: unbounded RGB at low alpha made neon fringes.
+      gl_FragColor = vec4(palette(hue) * alpha, alpha);
     }
   `;
 
@@ -188,13 +188,13 @@
   const updatePalette = () => {
     const dark = document.documentElement.classList.contains("dark");
     const palette = dark
-      ? ["#69d4ff", "#57f0df", "#a08cff"]
-      : ["#3b86a8", "#43aeb2", "#6975bf"];
+      ? ["#b0b0b0", "#ffffff", "#d8d8d8"]
+      : ["#3797c8", "#6dc9e6", "#4eadd7"];
     gl.useProgram(program);
     gl.uniform3fv(uniforms.color0, colorToRgb(palette[0]));
     gl.uniform3fv(uniforms.color1, colorToRgb(palette[1]));
     gl.uniform3fv(uniforms.color2, colorToRgb(palette[2]));
-    gl.uniform1f(uniforms.opacity, dark ? 0.96 : 0.68);
+    gl.uniform1f(uniforms.opacity, dark ? 0.6 : 0.46);
   };
 
   const resize = () => {

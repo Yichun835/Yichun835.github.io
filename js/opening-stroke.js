@@ -3,9 +3,11 @@
 
   const storageKey = "yc-opening-welcome-v3-played";
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const releaseFirstPaint = () => window.dispatchEvent(new Event("yc:opening-ready"));
 
   try {
     if (window.sessionStorage.getItem(storageKey) === "true") {
+      releaseFirstPaint();
       return;
     }
   } catch {
@@ -18,6 +20,7 @@
     } catch {
       // No persistent state is required for the reduced-motion fallback.
     }
+    releaseFirstPaint();
     return;
   }
 
@@ -126,6 +129,8 @@
     document.addEventListener("keydown", onKeydown);
     document.body.classList.add("yc-opening-active");
     document.body.append(overlay);
+    // The head cover stays in place until the real screen is mounted.
+    releaseFirstPaint();
     overlay.focus({ preventScroll: true });
 
     window.requestAnimationFrame(() => {
@@ -136,5 +141,5 @@
 
   };
 
-  window.setTimeout(mount, document.body.dataset.arrival === "internal" ? 560 : 0);
+  mount();
 })();
