@@ -1,0 +1,36 @@
+<style id="yc-first-paint">
+html.yc-ui-pending { background: #faf9f7; }
+html.dark.yc-ui-pending { background: #0a0b0b; }
+html.yc-ui-pending body { visibility: hidden; }
+html.yc-ui-pending .yc-opening-screen { visibility: visible; }
+</style>
+<script id="yc-first-paint-bootstrap">
+(() => {
+  const root = document.documentElement;
+  let appearance;
+  try { appearance = localStorage.getItem("appearance"); } catch {}
+  const dark = appearance === "dark" || (appearance !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  root.classList.toggle("dark", dark);
+  root.classList.add("yc-ui-pending");
+  // These events can arrive before deferred navigation handlers are installed.
+  for (const type of ["pagereveal", "pageswap"]) {
+    window.addEventListener(type, event => {
+      event.viewTransition?.ready.catch(() => {});
+    });
+  }
+  // Reveal after ordered defer scripts finish, not after images, fonts or animation.
+  // No-JS readers never get the pending class; failed requests still reach DOMContentLoaded.
+  let timeout;
+  const release = () => {
+    root.classList.remove("yc-ui-pending");
+    for (const script of document.querySelectorAll('script[data-yc-ui-render]')) {
+      script.removeAttribute("blocking");
+    }
+    window.clearTimeout(timeout);
+  };
+  document.addEventListener("DOMContentLoaded", release, { once: true });
+  window.addEventListener("pageshow", release, { once: true });
+  // A stalled script must not leave the site permanently hidden.
+  timeout = window.setTimeout(release, 4000);
+})();
+</script>

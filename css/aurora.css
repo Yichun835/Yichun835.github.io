@@ -3181,17 +3181,17 @@ body.yc-home-page .friends-section > .flex.flex-col > .flex > span { display: no
 body.yc-home-page .friends-section h2 { font-size: 24px; font-weight: 500; }
 body.yc-home-page .friends-section > .flex.flex-col > p { font-size: 15px; color: var(--yc-muted); }
 
-/* Four real friends: give each name its own room, rather than wrapping a flex row. */
+/* Five friends share one desktop row; small screens retain horizontal scrolling. */
 body.yc-home-page .friends-section:not(.yc-mentors-section) > .flex.flex-col {
   margin-bottom: 32px;
 }
 
 body.yc-home-page .friends-section:not(.yc-mentors-section) > .flex.flex-wrap {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 32px clamp(20px, 3.4vw, 44px);
   width: 100%;
-  max-width: 680px;
+  max-width: 860px;
   margin-inline: auto;
 }
 
@@ -3210,7 +3210,8 @@ body.yc-home-page .friends-section:not(.yc-mentors-section) > .flex.flex-wrap > 
 
 @media (max-width: 767px) {
   body.yc-home-page .friends-section:not(.yc-mentors-section) > .flex.flex-wrap {
-    grid-template-columns: repeat(4, minmax(104px, 1fr));
+    grid-template-columns: repeat(5, minmax(104px, 1fr));
+    justify-content: start;
     max-width: 680px;
     gap: 24px 16px;
     padding: 12px 4px 16px;

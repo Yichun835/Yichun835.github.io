@@ -99,3 +99,13 @@ It does not intercept links or wait for a cover animation. Older browsers and
 the homepage Switch layout action retain a shorter PixelSwap; reduced motion
 disables both effects. Theme-switch transitions remain independent.
 Run `uv run node tools/test_page_navigation.mjs` for navigation behavior checks.
+
+Initial rendering uses `tools/first-paint.html`: the saved light/dark palette is
+selected in the head, and the unenhanced template stays hidden until the ordered
+deferred UI scripts finish. Welcome can appear and receive focus immediately;
+there is no extra entrance delay or wait for images/WebGL. Disabled JavaScript,
+failed downloads and stalled scripts all have visible-content fallbacks.
+Page/body styling classes are also present in the static HTML. Run
+`uv run node tools/sync_first_paint.mjs` after editing shared UI assets to refresh
+their content-hashed URLs across the generated pages. Check with
+`uv run node tools/test_first_paint.mjs`.

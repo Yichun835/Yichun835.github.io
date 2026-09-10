@@ -514,10 +514,8 @@
     }
   }
 
-  const siteControls = document.createElement("script");
-  siteControls.src = "/js/site-controls.js?v=1";
-  siteControls.async = true;
-  document.head.append(siteControls);
+  // site-controls.js follows this file as an ordered defer script in each head.
+  // The appearance controls are ready before the first content reveal.
 
   document
     .querySelector('a[href*="kelvincyyuen.com"]')
