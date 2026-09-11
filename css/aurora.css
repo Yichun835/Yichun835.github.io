@@ -3229,28 +3229,28 @@ body.yc-home-page .friends-section > .flex.flex-col > .flex > span { display: no
 body.yc-home-page .friends-section h2 { font-size: 24px; font-weight: 500; }
 body.yc-home-page .friends-section > .flex.flex-col > p { font-size: 15px; color: var(--yc-muted); }
 
-/* Five friends share one desktop row; small screens retain horizontal scrolling. */
+/* Six friends share one desktop row; small screens retain horizontal scrolling. */
 body.yc-home-page .friends-section:not(.yc-mentors-section) > .flex.flex-col {
   margin-bottom: 32px;
 }
 
 body.yc-home-page .friends-section:not(.yc-mentors-section) > .flex.flex-wrap {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 32px clamp(20px, 3.4vw, 44px);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 32px clamp(14px, 2.4vw, 32px);
   width: 100%;
   max-width: 860px;
   margin-inline: auto;
 }
 
-body.yc-home-page .friends-section:not(.yc-mentors-section) > .flex.flex-wrap > a {
+body.yc-home-page .friends-section:not(.yc-mentors-section) > .flex.flex-wrap > :is(a, .yc-friend-static) {
   width: auto;
   min-width: 0;
   gap: 14px;
   padding-block: 4px;
 }
 
-body.yc-home-page .friends-section:not(.yc-mentors-section) > .flex.flex-wrap > a > span {
+body.yc-home-page .friends-section:not(.yc-mentors-section) > .flex.flex-wrap > :is(a, .yc-friend-static) > span {
   white-space: nowrap;
   word-break: normal;
   overflow-wrap: normal;
@@ -3258,7 +3258,7 @@ body.yc-home-page .friends-section:not(.yc-mentors-section) > .flex.flex-wrap > 
 
 @media (max-width: 767px) {
   body.yc-home-page .friends-section:not(.yc-mentors-section) > .flex.flex-wrap {
-    grid-template-columns: repeat(5, minmax(104px, 1fr));
+    grid-template-columns: repeat(6, minmax(104px, 1fr));
     justify-content: start;
     max-width: 680px;
     gap: 24px 16px;
@@ -3270,10 +3270,12 @@ body.yc-home-page .friends-section:not(.yc-mentors-section) > .flex.flex-wrap > 
     scrollbar-color: var(--yc-border) transparent;
   }
 
-  body.yc-home-page .friends-section:not(.yc-mentors-section) > .flex.flex-wrap > a {
+  body.yc-home-page .friends-section:not(.yc-mentors-section) > .flex.flex-wrap > :is(a, .yc-friend-static) {
     scroll-snap-align: start;
   }
 }
+
+.yc-friend-static { cursor: default; }
 
 .yc-photo-spotlight--social::before,
 .yc-photo-spotlight--social::after {
