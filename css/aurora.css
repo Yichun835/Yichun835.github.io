@@ -2164,6 +2164,54 @@ body.yichun-subtle .yc-contact-email-pill .yc-contact-logoloop-link {
 .yc-email-copy svg { width: 18px; height: 18px; }
 .yc-email-copy:hover, .yc-email-copy[data-state="copied"] { color: var(--yc-ink); background: var(--yc-hover); }
 
+/* A compact fallback for visitors without a working mailto application. */
+.yc-mail-help {
+  position: fixed;
+  z-index: 1200;
+  left: 50%;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  width: min(356px, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 20px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(158, 130, 85, 0.3);
+  border-radius: 20px;
+  background: #faf9f7;
+  box-shadow: 0 16px 56px rgba(0, 0, 0, 0.18);
+  color: var(--yc-ink);
+  text-align: left;
+}
+.yc-mail-help[hidden] { display: none !important; }
+html.dark .yc-mail-help { background: #171816; box-shadow: 0 16px 56px rgba(0, 0, 0, 0.45); }
+.yc-mail-help-title { display: block; padding-right: 28px; font-size: 14px; font-weight: 600; }
+.yc-mail-help-note { margin: 10px 0 12px; color: var(--yc-muted); font-size: 13px; line-height: 1.55; }
+.yc-mail-help-address { margin: 0 0 14px; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; user-select: text; }
+.yc-mail-help-close {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  color: var(--yc-muted);
+  background: transparent;
+  font-size: 24px;
+  cursor: pointer;
+}
+.yc-mail-help-close:hover { color: var(--yc-ink); background: var(--yc-hover); }
+.yc-mail-help-close:focus-visible { outline: 2px solid var(--yc-muted); outline-offset: -5px; }
+.yc-mail-help .yc-mail-help-copy {
+  width: auto;
+  min-width: 110px;
+  padding: 0 16px;
+  border: 1px solid var(--yc-border);
+  border-radius: 999px;
+  color: var(--yc-ink);
+  background: var(--yc-hover);
+  font-size: 13px;
+}
+
 @keyframes yc-contact-logo-loop {
   to {
     transform: translate3d(-50%, 0, 0);

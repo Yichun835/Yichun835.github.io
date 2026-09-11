@@ -100,6 +100,68 @@
   addEventListener("pagehide", () => closeAll());
   addEventListener("pageshow", () => closeAll());
 
+  // Keep the native mailto action, but never leave an unsupported mail handler silent.
+  function installMailFallback() {
+    let panel;
+    let trigger;
+    const close = (restoreFocus = false) => {
+      if (!panel || panel.hidden) return;
+      panel.hidden = true;
+      if (restoreFocus && trigger?.isConnected) trigger.focus({ preventScroll: true });
+    };
+    document.addEventListener("click", event => {
+      const link = event.target.closest?.('a.yc-electric-contact, a.yc-contact-logoloop-link[href^="mailto:"]');
+      if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const href = link.getAttribute("href") || "";
+      if (!href.toLowerCase().startsWith("mailto:")) return;
+      let address;
+      try { address = decodeURIComponent(href.slice(7).split("?")[0]); } catch { return; }
+      if (!address || /[\r\n]/.test(address)) return;
+      trigger = link;
+      if (!panel) {
+        panel = document.createElement("section");
+        panel.className = "yc-mail-help";
+        panel.hidden = true;
+        panel.setAttribute("aria-label", chinese ? "邮件联系方式" : "Email contact");
+        panel.innerHTML = '<strong class="yc-mail-help-title">Email</strong>' +
+          '<button type="button" class="yc-mail-help-close"></button>' +
+          '<p class="yc-mail-help-note"></p><p class="yc-mail-help-address"></p>' +
+          '<button type="button" class="yc-email-copy yc-mail-help-copy"></button>' +
+          '<span class="yc-sr-only" role="status" aria-live="polite"></span>';
+        const dismiss = panel.querySelector(".yc-mail-help-close");
+        dismiss.textContent = "×";
+        dismiss.setAttribute("aria-label", chinese ? "关闭邮箱提示" : "Close email help");
+        dismiss.addEventListener("click", () => close(true));
+        panel.querySelector(".yc-mail-help-note").textContent = chinese
+          ? "如果邮件应用没有打开，可以复制邮箱地址后写信。"
+          : "If your mail app doesn’t open, copy my email address to write to me.";
+        const copy = panel.querySelector(".yc-mail-help-copy");
+        copy.textContent = chinese ? "复制邮箱" : "Copy email";
+        copy.setAttribute("aria-label", chinese ? "复制邮箱地址" : "Copy email address");
+        document.body.append(panel);
+      }
+      panel.querySelector(".yc-mail-help-address").textContent = address;
+      panel.querySelector(".yc-mail-help-copy").dataset.copyEmail = address;
+      panel.hidden = false;
+      panel.querySelector('[role="status"]').textContent = chinese
+        ? "已请求打开邮件应用；如未打开，可复制邮箱地址。"
+        : "Mail app requested. If it doesn’t open, you can copy the email address.";
+      // Put the backup action within immediate keyboard reach; Escape returns to the link.
+      if (event.detail === 0) panel.querySelector(".yc-mail-help-copy").focus({ preventScroll: true });
+      // No preventDefault, popup, timer-based success claim or automatic clipboard write.
+      // The original mailto continues synchronously within the user's click gesture.
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key !== "Escape" || event.defaultPrevented || !panel || panel.hidden) return;
+      event.preventDefault(); close(true);
+    });
+    document.addEventListener("pointerdown", event => {
+      if (panel && !panel.hidden && !panel.contains(event.target) && !trigger?.contains(event.target)) close();
+    });
+    addEventListener("pagehide", () => close());
+  }
+  installMailFallback();
+
   async function copyEmail(text) {
     try {
       if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(text); return true; }
@@ -127,7 +189,7 @@
     const copied = await copyEmail(button.dataset.copyEmail);
     delete button.dataset.busy;
     const label = copied ? (chinese ? "已复制" : "Copied") : (chinese ? "未复制" : "Retry");
-    const status = document.getElementById("yc-copy-status");
+    const status = button.closest(".yc-mail-help")?.querySelector('[role="status"]') || document.getElementById("yc-copy-status");
     if (status) status.textContent = copied
       ? (chinese ? "邮箱地址已复制" : "Email address copied")
       : (chinese ? "无法自动复制，请选择邮箱文字手动复制。" : "Could not copy. Select the email address to copy it manually.");
