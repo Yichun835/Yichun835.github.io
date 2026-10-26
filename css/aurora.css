@@ -649,6 +649,31 @@ body.yc-research-page .yc-research-editorial > p {
   font-size: 16px;
 }
 
+body.yc-research-page .yc-research-paper {
+  max-width: 62ch;
+}
+
+body.yc-research-page .yc-research-paper-title {
+  margin: 0 0 10px;
+  color: var(--yc-ink);
+  font-size: 18px;
+  font-weight: 550;
+  letter-spacing: -0.012em;
+  line-height: 1.5;
+}
+
+body.yc-research-page .yc-research-paper-authors {
+  margin: 0;
+  color: var(--yc-muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+body.yc-research-page .yc-research-paper-authors strong {
+  color: var(--yc-ink);
+  font-weight: 500;
+}
+
 /* Keep the existing particle title and single contact loop, centered together. */
 body.yc-contact-page #single_header {
   max-width: 760px;
