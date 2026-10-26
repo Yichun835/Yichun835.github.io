@@ -3277,18 +3277,29 @@ body.yc-home-page .friends-section > .flex.flex-col > .flex > span { display: no
 body.yc-home-page .friends-section h2 { font-size: 24px; font-weight: 500; }
 body.yc-home-page .friends-section > .flex.flex-col > p { font-size: 15px; color: var(--yc-muted); }
 
-/* Six friends share one desktop row; small screens retain horizontal scrolling. */
+/* Seven friends share one desktop row; narrower screens scroll without squeezing labels. */
+body.yc-home-page .friends-section:not(.yc-mentors-section) {
+  max-width: 980px;
+}
+
 body.yc-home-page .friends-section:not(.yc-mentors-section) > .flex.flex-col {
   margin-bottom: 32px;
 }
 
 body.yc-home-page .friends-section:not(.yc-mentors-section) > .flex.flex-wrap {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(108px, 1fr));
   gap: 32px clamp(14px, 2.4vw, 32px);
   width: 100%;
-  max-width: 860px;
+  max-width: 980px;
   margin-inline: auto;
+  justify-content: start;
+  padding: 12px 4px 16px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: var(--yc-border) transparent;
 }
 
 body.yc-home-page .friends-section:not(.yc-mentors-section) > .flex.flex-wrap > :is(a, .yc-friend-static) {
@@ -3296,6 +3307,7 @@ body.yc-home-page .friends-section:not(.yc-mentors-section) > .flex.flex-wrap > 
   min-width: 0;
   gap: 14px;
   padding-block: 4px;
+  scroll-snap-align: start;
 }
 
 body.yc-home-page .friends-section:not(.yc-mentors-section) > .flex.flex-wrap > :is(a, .yc-friend-static) > span {
@@ -3306,7 +3318,7 @@ body.yc-home-page .friends-section:not(.yc-mentors-section) > .flex.flex-wrap > 
 
 @media (max-width: 767px) {
   body.yc-home-page .friends-section:not(.yc-mentors-section) > .flex.flex-wrap {
-    grid-template-columns: repeat(6, minmax(104px, 1fr));
+    grid-template-columns: repeat(7, minmax(104px, 1fr));
     justify-content: start;
     max-width: 680px;
     gap: 24px 16px;

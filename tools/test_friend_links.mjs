@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const expectedNames = ['ZHUOYUYU', 'Fanchu Xu', 'Anxian Liu', 'Ruonan Zheng', 'Ryan Lan', 'Yulu Hu'];
+const expectedNames = ['ZHUOYUYU', 'Fanchu Xu', 'Anxian Liu', 'Ruonan Zheng', 'Ryan Lan', 'Yulu Hu', 'Junying Ma'];
 const href = 'https://github.com/tpmoonchefryan';
 const avatar = '/img/friends/ryan-lan.jpg';
 
@@ -9,7 +9,7 @@ for (const page of ['index.html', 'zh-cn/index.html']) {
   const html = fs.readFileSync(new URL(`../${page}`, import.meta.url), 'utf8');
   const friends = [...html.matchAll(/<(a|div)\b[^>]*aria-label="Friend: ([^"]+)"[^>]*>[\s\S]*?<\/\1>/g)];
   assert.deepEqual(friends.map(match => match[2]), expectedNames, `${page}: preserve all friends in order`);
-  assert.equal(friends.filter(match => match[1] === 'a').length, 5, `${page}: preserve existing working links`);
+  assert.equal(friends.filter(match => match[1] === 'a').length, 6, `${page}: preserve existing working links and add the new LinkedIn profile`);
   const ryan = friends.find(match => match[2] === 'Ryan Lan')[0];
   assert.ok(ryan.includes(`href="${href}"`), `${page}: GitHub destination`);
   assert.ok(ryan.includes(`src="${avatar}"`), `${page}: root-relative local avatar`);
@@ -32,9 +32,9 @@ for (const page of ['index.html', 'zh-cn/index.html']) {
 const image = fs.readFileSync(new URL(`..${avatar}`, import.meta.url));
 assert.equal(image.readUInt16BE(0), 0xffd8, 'Avatar is a JPEG');
 const css = fs.readFileSync(new URL('../css/aurora.css', import.meta.url), 'utf8');
-assert.match(css, /grid-template-columns: repeat\(6, minmax\(0, 1fr\)\)/, 'Six desktop columns');
-assert.match(css, /grid-template-columns: repeat\(6, minmax\(104px, 1fr\)\)/, 'Six scrollable mobile columns');
-assert.match(css, /grid-template-columns: repeat\(6, minmax\(104px, 1fr\)\);\s+justify-content: start;/, 'Keep the first friend reachable at the start of mobile overflow');
+assert.match(css, /grid-template-columns: repeat\(7, minmax\(108px, 1fr\)\)/, 'Seven desktop columns with readable labels');
+assert.match(css, /grid-template-columns: repeat\(7, minmax\(104px, 1fr\)\)/, 'Seven scrollable mobile columns');
+assert.match(css, /grid-template-columns: repeat\(7, minmax\(104px, 1fr\)\);\s+justify-content: start;/, 'Keep the first friend reachable at the start of mobile overflow');
 assert.match(css, /\.yc-friend-static \{ cursor: default; \}/);
 assert.equal(fs.readFileSync(new URL('../img/friends/yulu-hu.jpg', import.meta.url)).readUInt16BE(0), 0xffd8);
-console.log('PASS: six friends, bilingual Yulu Hu, five preserved links, non-interactive new entry, local JPEGs, lazy loading and responsive row');
+console.log('PASS: seven bilingual friends, six working links, non-interactive Yulu Hu, local JPEGs, lazy loading and responsive row');
