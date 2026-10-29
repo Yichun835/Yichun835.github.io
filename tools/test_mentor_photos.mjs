@@ -11,7 +11,7 @@ assert.equal(createHash('sha256').update(image).digest('hex'), officialHash, 'Pr
 for (const page of ['index.html', 'zh-cn/index.html']) {
   const html = fs.readFileSync(new URL(`../${page}`, import.meta.url), 'utf8');
   const mentors = [...html.matchAll(/<a\b[^>]*aria-label="(?:Mentor|导师): ([^"]+)"[^>]*>[\s\S]*?<\/a>/g)];
-  assert.deepEqual(mentors.map(match => match[1]), ['C. Y. Kelvin Yuen', 'Fangda'], `${page}: preserve mentor order and names`);
+  assert.deepEqual(mentors.map(match => match[1]), ['C. Y. Kelvin Yuen', 'Fangda', page === 'index.html' ? 'Yajie Wang' : '汪雅洁'], `${page}: preserve mentor order and names`);
   const fang = mentors.find(match => match[1] === 'Fangda')[0];
   assert.ok(fang.includes('href=https://myweb.cuhk.edu.cn/fangda###'), `${page}: preserve official destination`);
   assert.ok(fang.includes(`src="${avatar}"`), `${page}: use local cache-versioned official photo`);
